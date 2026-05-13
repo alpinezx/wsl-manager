@@ -1,4 +1,4 @@
-# wsl-manager
+# WSL Manager
 
 A simple Windows batch file to start, stop, and manage WSL silently in the background — no terminal window required. Includes optional auto-start on Windows boot.
 
