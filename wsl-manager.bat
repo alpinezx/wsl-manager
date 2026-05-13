@@ -11,6 +11,7 @@ setlocal EnableDelayedExpansion
 set "STARTUP_DIR=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
 set "STARTUP_VBS=%STARTUP_DIR%\wsl-autostart.vbs"
 set "STARTUP_VBS_WIN=%STARTUP_DIR%\wsl-autostart-window.vbs"
+set "STARTUP_VBS_MIN=%STARTUP_DIR%\wsl-autostart-minimized.vbs"
 
 :MENU
 
@@ -23,6 +24,7 @@ set "has_startup=false"
 set "startup_mode="
 if exist "%STARTUP_VBS%"     (set "has_startup=true" & set "startup_mode=hidden")
 if exist "%STARTUP_VBS_WIN%" (set "has_startup=true" & set "startup_mode=window")
+if exist "%STARTUP_VBS_MIN%" (set "has_startup=true" & set "startup_mode=minimized")
 
 :: --- Header ---
 echo.
@@ -38,8 +40,9 @@ if "%wsl_running%"=="true" (
   echo    [ ] WSL                -- not running
 )
 if "%has_startup%"=="true" (
-  if "%startup_mode%"=="hidden" echo    [x] Start with Windows -- enabled (hidden)
-  if "%startup_mode%"=="window" echo    [x] Start with Windows -- enabled (with terminal)
+  if "%startup_mode%"=="hidden"   echo    [x] Start with Windows -- enabled (hidden)
+  if "%startup_mode%"=="window"   echo    [x] Start with Windows -- enabled (with terminal)
+  if "%startup_mode%"=="minimized" echo    [x] Start with Windows -- enabled (minimized to taskbar)
 ) else (
   echo    [ ] Start with Windows -- disabled
 )
@@ -67,6 +70,8 @@ if "%wsl_running%"=="true" (
 if "%has_startup%"=="false" (
   set /a opt_count+=1
   set "opt_!opt_count!=Start WSL automatically when Windows boots (with terminal window)"
+  set /a opt_count+=1
+  set "opt_!opt_count!=Start WSL automatically when Windows boots (minimized to taskbar)"
   set /a opt_count+=1
   set "opt_!opt_count!=Start WSL automatically when Windows boots (no terminal window)"
 )
@@ -105,6 +110,7 @@ if "!selected!"=="Restart WSL in background (no terminal window)"               
 if "!selected!"=="Stop WSL"                                                        goto DO_STOP
 if "!selected!"=="Start WSL automatically when Windows boots (no terminal window)" goto DO_ENABLE_STARTUP
 if "!selected!"=="Start WSL automatically when Windows boots (with terminal window)" goto DO_ENABLE_STARTUP_WINDOW
+if "!selected!"=="Start WSL automatically when Windows boots (minimized to taskbar)" goto DO_ENABLE_STARTUP_MIN
 if "!selected!"=="Stop WSL starting automatically on boot"                         goto DO_DISABLE_STARTUP
 if "!selected!"=="Exit"                                                            goto DO_EXIT
 goto INVALID
@@ -170,6 +176,7 @@ if /i not "%confirm%"=="y" (
 echo.
 echo  Setting up auto-start (hidden)...
 if exist "%STARTUP_VBS_WIN%" del "%STARTUP_VBS_WIN%"
+if exist "%STARTUP_VBS_MIN%" del "%STARTUP_VBS_MIN%"
 (
   echo Set objShell = CreateObject^("WScript.Shell"^)
   echo objShell.Run "wsl.exe", 0, False
@@ -186,12 +193,31 @@ if /i not "%confirm%"=="y" (
 )
 echo.
 echo  Setting up auto-start (with terminal)...
-if exist "%STARTUP_VBS%" del "%STARTUP_VBS%"
+if exist "%STARTUP_VBS%"     del "%STARTUP_VBS%"
+if exist "%STARTUP_VBS_MIN%" del "%STARTUP_VBS_MIN%"
 (
   echo Set objShell = CreateObject^("WScript.Shell"^)
   echo objShell.Run "wsl.exe --cd ~", 1, False
 ) > "%STARTUP_VBS_WIN%"
 echo  [x] Done. WSL will now start with a terminal window automatically on next Windows boot.
+timeout /t 2 /nobreak >nul
+goto MENU
+
+:DO_ENABLE_STARTUP_MIN
+set /p "confirm= WSL will start minimized to the taskbar automatically every time Windows boots. Are you sure? (y/n): "
+if /i not "%confirm%"=="y" (
+  echo  Cancelled. Nothing was changed.
+  goto MENU
+)
+echo.
+echo  Setting up auto-start (minimized)...
+if exist "%STARTUP_VBS%"     del "%STARTUP_VBS%"
+if exist "%STARTUP_VBS_WIN%" del "%STARTUP_VBS_WIN%"
+(
+  echo Set objShell = CreateObject^("WScript.Shell"^)
+  echo objShell.Run "wsl.exe --cd ~", 2, False
+) > "%STARTUP_VBS_MIN%"
+echo  [x] Done. WSL will now start minimized to the taskbar automatically on next Windows boot.
 timeout /t 2 /nobreak >nul
 goto MENU
 
@@ -204,6 +230,7 @@ if /i not "%confirm%"=="y" (
 echo.
 if exist "%STARTUP_VBS%"     del "%STARTUP_VBS%"
 if exist "%STARTUP_VBS_WIN%" del "%STARTUP_VBS_WIN%"
+if exist "%STARTUP_VBS_MIN%" del "%STARTUP_VBS_MIN%"
 echo  [x] Auto-start has been disabled.
 timeout /t 2 /nobreak >nul
 goto MENU
