@@ -112,4 +112,4 @@ Removes the startup entry. WSL will no longer start automatically on login.
 
 - Windows 10 or 11
 - WSL2 installed with Ubuntu
-
+---
