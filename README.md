@@ -113,11 +113,3 @@ Removes the startup entry. WSL will no longer start automatically on login.
 - Windows 10 or 11
 - WSL2 installed with Ubuntu
 
----
-
-## Related Projects
-
-This tool pairs well with either of these WSL-based setups:
-
-- [openwebui-searxng](https://github.com/alpinezx/openwebui-searxng) — Open WebUI + SearXNG via Docker on WSL2
-- [lmstudio-searxng](https://github.com/alpinezx/lmstudio-searxng) — LM Studio + SearXNG via Docker on WSL2
